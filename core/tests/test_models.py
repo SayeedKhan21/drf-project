@@ -6,9 +6,13 @@ from django.test import TestCase
 from django.contrib.auth import get_user_model
 from core.models import (
     Recipe ,
+    Tag ,
 )
 from decimal import Decimal
 
+
+def create_user(email = "test@example.com" , password =  "12345") : 
+    return get_user_model().objects.create(email = email , password = password)
 
 class ModelTests(TestCase) : 
 
@@ -57,3 +61,12 @@ class ModelTests(TestCase) :
             price = Decimal('5.50')            
         )
         self.assertEqual(recipe.title , str(recipe))
+
+    def test_create_tag(self) : 
+
+        """ Check creation of tag """
+        tag = Tag.objects.create(name = "sample" , user = create_user())
+        self.assertEqual(tag.name , str(tag))
+
+
+
