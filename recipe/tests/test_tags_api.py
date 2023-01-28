@@ -91,4 +91,6 @@ class PrivateTagsApiTest(TestCase) :
         tag = Tag.objects.filter(user = self.user)
         self.assertFalse(tag.exists())
 
+  
+
 

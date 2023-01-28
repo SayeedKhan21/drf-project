@@ -1,4 +1,7 @@
-from core.models import Recipe
+from core.models import (
+    Recipe ,
+    Tag ,
+)
 from recipe.serializers import (
     RecipeSerializer ,
     RecipeDetailSerializer
@@ -84,33 +87,37 @@ class PrivateRecipeApiTests(TestCase) :
         res = self.client.get(url)
         serializer = RecipeDetailSerializer(recipe)
         self.assertEqual(res.status_code , status.HTTP_200_OK)
-        # print(serializer.data)
         self.assertEqual(res.data , serializer.data)
 
     def test_create_recipe(self) : 
        payload = {
             'title' : 'sample' ,
             'time_minutes' : 15 ,
-            'price' : Decimal('20.2') ,
+            'price' : 10.5 ,
             'link' : 'http://example.com/recipe.pdf'                                     
         }
 
        res = self.client.post(RECIPE_URL , data = payload)
        self.assertEqual(res.status_code , status.HTTP_201_CREATED)
 
-    def test_partial_update_successfull(self) : 
+    def test_recipe_partial_update_successfull(self) : 
 
         recipe = create_recipe(self.user)
         changedData = {
-            'title' : 'New title'
+            'title' : 'New title' ,
+            'description' : 'this is new recipe'
         }        
         url = get_recipe_detail_url(recipe.id)
         res = self.client.patch(url ,changedData)
         self.assertEqual(res.status_code ,status.HTTP_200_OK)
         recipe.refresh_from_db()
+        
         self.assertEqual(recipe.title, changedData['title'])
 
-    def test_full_update_successfull(self) : 
+    def test_recipe_full_update_successfull(self) : 
+
+        """ Test full recipe update """
+
         recipe = create_recipe(self.user)
         changedData = {
             'title' : 'sample' ,
@@ -125,6 +132,72 @@ class PrivateRecipeApiTests(TestCase) :
         recipe.refresh_from_db()
         for key ,val in changedData.items() : 
             self.assertEqual(getattr(recipe , key) , val)
+
+    def test_create_recipe_with_tag(self) : 
+
+        """ Test creating a recipe with tags """
+
+        payload = { 
+            "title" : "sample" ,
+            "description" : "This is sample recipe" ,
+            "time_minutes" : 15 ,
+            "price" : 200 ,
+            "link" : "http://example.com/recipe.pdf" ,
+            "tags" : [{"name" : "good" } ,{ "name" : "average" }]
+        }
+        print(RECIPE_URL)
+        res = self.client.post(RECIPE_URL , payload ,format = "json")
+        self.assertEqual(res.status_code , status.HTTP_201_CREATED)
+        recipes = Recipe.objects.filter(user = self.user)
+        recipe = recipes[0]
+        self.assertEqual(recipes.count() , 1) ;
+        self.assertEqual(recipe.tags.count() , 2)
+        # print(vars(recipe))
+        for tag in payload['tags'] : 
+            exists = recipe.tags.filter(name = tag['name'] , user =self.user).exists()
+            self.assertTrue(exists)
+
+    def test_create_tag_on_update(self) : 
+
+        recipe = create_recipe(self.user) 
+        url = get_recipe_detail_url(recipe.id)
+        payload =  {
+            'tags' : [
+                {'name' : 'amazing'}
+            ]
+        }
+        res = self.client.patch(url  , payload , format = "json")
+        self.assertEqual(res.status_code , status.HTTP_200_OK)
+        tag = Tag.objects.get(user = self.user , name = 'amazing')
+        self.assertIn(tag , recipe.tags.all())
+
+    def test_recipe_reassign_tag(self) : 
+
+        """ Test to check whether recipes tags are updated  """
+
+        tag1 = Tag.objects.create(user =  self.user , name = 'dinner')
+        recipe = create_recipe(self.user)
+        url = get_recipe_detail_url(recipe.id)
+        recipe.tags.add(tag1)
+
+        payload = {
+            'tags' :[
+                {'name' : 'lunch'}
+            ]
+        }
+
+        res = self.client.patch(url ,payload ,format = "json")
+        self.assertEqual(res.status_code , status.HTTP_200_OK)
+        tag2 = Tag.objects.get(user = self.user , name = 'lunch')
+        self.assertIn(tag2 , recipe.tags.all())
+        self.assertNotIn(tag1 ,recipe.tags.all())
+        
+        
+        
+
+
+
+        
 
         
 

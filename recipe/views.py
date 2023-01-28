@@ -32,17 +32,26 @@ class RecipeViewSet(viewsets.ModelViewSet) :
         return self.queryset.filter(user = self.request.user).order_by('-id')
     
     def get_serializer_class(self):
-        # print("here")
-        if self.action == 'list' : 
+        # print("here = " , self.action)
+        if self.action == 'list' or self.action == 'create' : 
+            # print("here")
+            # print("tag = " , (self.request.data['tags']))
+            # print(self.request.data['tags'])
             return RecipeSerializer
+        # print(self.request.data)
         return self.serializer_class
     
     def perform_create(self, serializer):
-        return serializer.save(user = self.request.user)
+        # print('here')
+        # print("here")
+        # print(self.request.data['tags'])
+        instance =  serializer.save(user = self.request.user)
+        # print("instance = " , instance)
+        return instance
     
     def perform_update(self, serializer):
-        instance = serializer.save()
-        return instance
+        # print(serializer.validated_data)
+        return super().perform_update(serializer)
     
 
 class TagViewSet(ListModelMixin  ,UpdateModelMixin, DestroyModelMixin, viewsets.GenericViewSet) : 
