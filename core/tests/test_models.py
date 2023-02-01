@@ -6,7 +6,8 @@ from django.test import TestCase
 from django.contrib.auth import get_user_model
 from core.models import (
     Recipe ,
-    Tag ,
+    Tag , 
+    Ingredient ,
 )
 from decimal import Decimal
 
@@ -29,6 +30,7 @@ class ModelTests(TestCase) :
 
         self.assertEqual(user.email ,email)
         self.assertTrue(user.check_password(password))
+        
 
     def test_new_user_with_normalized_email(self) : 
         sample_emails = [
@@ -67,6 +69,13 @@ class ModelTests(TestCase) :
         """ Check creation of tag """
         tag = Tag.objects.create(name = "sample" , user = create_user())
         self.assertEqual(tag.name , str(tag))
+
+    def test_create_ingredient(self) : 
+
+        """ Check creation of ingredient """
+
+        ingredient = Ingredient.objects.create(name = "sample" , user = create_user() )
+        self.assertEqual(str(ingredient) , "sample")
 
 
 

@@ -2,7 +2,8 @@ from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
 from .models import (
         User ,
         Recipe ,
-        Tag
+        Tag ,
+        Ingredient
     )
 from django.contrib import admin
 # Register your models here.
@@ -49,3 +50,4 @@ class UserAdmin(BaseUserAdmin) :
 
 admin.site.register(Recipe)
 admin.site.register(Tag)
+admin.site.register(Ingredient)
